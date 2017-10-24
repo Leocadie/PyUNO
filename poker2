@@ -1,0 +1,193 @@
+import random
+
+# Deux variables globales :
+# on se permet de les mettre hors classes parce qu'elles sont constantes
+RANGS    = ['2','3','4','5','6','7','8','9','X','V','D','R','A']
+COULEURS = ['P','C','K','T']
+
+## Classe Carte
+class Carte :
+    # Constructeur
+    def __init__(self,rang_utilisateur = RANGS[-1], couleur_utilisateur = COULEURS[1]) :
+        self.rang = rang_utilisateur
+        self.couleur = couleur_utilisateur
+
+    # renvoie une chaine de caractères à afficher
+    def __repr__(self) :
+        # return 'Carte : {rang}-{couleur}'.format(rang=self.rang,couleur=self.couleur)
+        return '{rang}{couleur}'.format(rang=self.rang,couleur=self.couleur)
+
+    def getRang(self) :
+        return self.rang
+    
+    def getCouleur(self) :
+        return self.couleur
+    
+## Classe Joueur
+class Joueur :
+    def __init__(self,nom_initial = 'Joueur 1') :
+        self.nom = nom_initial
+        self.main = []
+
+    def __repr__(self) :
+        return '{n}'.format(n = self.nom)
+
+    def nouvelle_donne(self) :
+        self.main = []
+
+    def recevoir(self, cartes) :
+        self.main += cartes
+
+    def afficheMain(self) :
+        print("Main de ",self,":",self.main)
+        return self.main
+    
+## Classe Croupier
+class Croupier :
+    def __init__(self) :
+        self.paquet = []
+
+    def __repr__(self) :
+        return "Croupier"
+
+    def rassembler(self) :
+        self.paquet = [Carte(r,c) for r in RANGS for c in COULEURS]
+
+    def mélanger(self) :
+        random.shuffle(self.paquet)
+
+    def couper(self) :
+        coupe = random.randint(0,len(self.paquet))
+        self.paquet = self.paquet[coupe:] + self.paquet[:coupe]
+
+    def nouvelle_donne(self) :
+        self.rassembler()
+        self.mélanger()
+        self.couper()
+        
+    def distribuerMal(self,listeJoueurs,N = 5) :
+        for joueur in listeJoueurs :
+            joueur.recevoir(self.paquet[:N])
+            self.paquet  = self.paquet[N :]
+         
+    def distribuer(self,listeJoueurs,N = 5) :
+        while len(self.paquet) < 52:
+            for numeroCarte in range(N):
+                for joueur in listeJoueurs :
+                    joueur.recevoir([self.paquet[0]])
+                    self.paquet  = self.paquet[1:] 
+
+    def affichePaquet(self) :
+        print("{nb} carte(s) :".format(nb = len(self.paquet)),self.paquet)
+                      
+
+## Classe Coup
+class Coup :
+    def __init__(self,joueurs = [] ) :
+        self.listeJoueurs = joueurs
+        self.croupier = Croupier()
+        for j in self.listeJoueurs :
+            j.nouvelle_donne()
+        self.croupier.nouvelle_donne()
+
+    def __repr__(self) :
+        return "Coup"
+
+    def distribuer(self, N = 5) :
+        self.croupier.distribuer(self.listeJoueurs,N)
+
+    def afficheTableJeu(self) :
+        print("Liste joueurs :",self.listeJoueurs)
+        for j in self.listeJoueurs :
+            j.afficheMain()
+        print(self.croupier, ':')
+        self.croupier.affichePaquet()
+
+
+## Classe Partie
+class Partie :
+    def __init__(self) :
+        pass
+
+    def __repr__(self) :
+        return "Partie"
+
+
+## ------------------------------------------------------------------------------------------------------------------------------------------------------
+    
+## Test
+
+# Fonction test :
+##
+def testCarte() :
+    maCarte = Carte()
+    print(maCarte)
+    print('rang    : ', maCarte.getRang())
+    print('couleur : ', maCarte.getCouleur())
+
+    liste_52_cartes = [Carte(r,c) for r in RANGS for c in COULEURS]
+    print(liste_52_cartes)
+
+##
+def testJoueur() :
+    j = Joueur('Untel')
+    print(j)
+
+    j.afficheMain()
+    j.recevoir([Carte(),Carte('5','C')])
+    j.afficheMain()
+    j.nouvelle_donne()
+    j.afficheMain()
+
+##
+def testCroupier() :
+    c = Croupier()
+    print("\n ***** test - ",c)
+    #print(c.paquet)
+    #c.mélanger()
+    #print(c.paquet)
+    #c.rassembler()
+    #print(c.paquet)
+    #c.couper()
+    #print(c.paquet)
+    #print(len(c.paquet))
+    c.nouvelle_donne()
+    print("Nouvelle donne : ",c.paquet)
+    listeJ = [Joueur('Toto'),Joueur('Lili')]
+    print(listeJ)
+    c.distribuer(listeJ)
+    print("Croupier après distribution :",c.paquet)
+    for j in listeJ :
+        j.afficheMain()
+    print(" ***** Fin test - ",c)
+
+## 
+def testCoup() :
+    listeJ = []
+    for i in range(3) :
+        listeJ += [Joueur("Joueur{num}".format(num = i+1))]
+    coup = Coup(listeJ)
+    print("\n ***** test - ",coup)
+    coup.afficheTableJeu()
+    coup.distribuer()
+    coup.afficheTableJeu()
+    print(" ***** Fin test - ",coup)
+## 
+def testPartie() :
+    pass
+
+##
+def testModule() :
+    pass
+
+## exécution test :
+
+if __name__ == "__main__" :
+    testCarte()
+    testJoueur()
+    testCroupier()
+    testCoup()
+    testPartie()
+    
+    testModule()
+    
